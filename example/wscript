@@ -1,0 +1,14 @@
+#! /usr/bin/env python
+
+def configure(ctx):
+    ctx.load("version", tooldir="..")
+
+def build(bld):
+    node = bld.path.find_or_declare
+    bld(versions={
+        "ssh": 7,
+        "bash": 3
+    }).create_task('ver',
+            node('in.ver'),
+            node('out')
+    )
