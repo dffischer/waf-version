@@ -37,8 +37,11 @@ class ver(Task):
             "==" : eq, "!=" : ne}
     """Defines all valid operators and the functions used to process them."""
 
-    marker = compile(
-            '@(?P<program>\w+)(?P<operator>\W+)(?P<version>\d[\.\d]*)@\s*')
+    marker = compile('@'
+            '(?P<program>\w+)'
+            '(?P<operator>\W+)'
+            '(?P<version>\d[\.\d]*)'
+            '@\s*')
     """pattern matching version markers"""
 
     def run(self):
