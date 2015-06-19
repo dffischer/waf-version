@@ -24,7 +24,7 @@ Markers like "@ssh<7@" will be removed, the lines containing them left intact.
 """
 
 from waflib.Task import Task
-from re import compile
+from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne
 
 class ver(Task):
@@ -39,7 +39,7 @@ class ver(Task):
 
     marker = compile('@'
             '(?P<program>\w+)'
-            '(?P<operator>\W+)'
+            '(?P<operator>' + '|'.join(map(escape, operators.keys())) + ')'
             '(?P<version>\d[\.\d]*)'
             '@\s*')
     """pattern matching version markers"""
