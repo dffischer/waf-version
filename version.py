@@ -23,11 +23,24 @@ lines in the file "in" containing "@ssh>6@" will be omitted from "out".
 Markers like "@ssh<7@" will be removed, the lines containing them left intact.
 """
 
-from waflib.Task import Task
+from waflib.Task import Task, store_task_type
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne
 
-class ver(Task):
+class compose_match(store_task_type):
+    """Metaclass composing the marker regular expression to look for exactly
+    the set of operators defined as a class attribute."""
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        if 'operators' in attrs:
+            cls.marker = compile('@'
+                    '(?P<program>\w+)'
+                    '(?P<operator>'
+                        + '|'.join(map(escape, attrs['operators'].keys())) +
+                    ')(?P<version>\d[\.\d]*)'
+                    '@\s*')
+
+class ver(Task, metaclass=compose_match):
     """Copy a file, including only lines without or with matching version
     markers."""
 
@@ -35,14 +48,10 @@ class ver(Task):
             "<" : lt, "<=" : le,
             ">" : gt, ">=" : ge,
             "==" : eq, "!=" : ne}
-    """Defines all valid operators and the functions used to process them."""
-
-    marker = compile('@'
-            '(?P<program>\w+)'
-            '(?P<operator>' + '|'.join(map(escape, operators.keys())) + ')'
-            '(?P<version>\d[\.\d]*)'
-            '@\s*')
-    """pattern matching version markers"""
+    """Defines all valid operators and the functions used to process them. It
+    is possible to add new operators by customizing this dictionary for a
+    subclass. All functions have to accept exactly two numeric arguments and
+    return a boolesch value."""
 
     def run(self):
         self.outputs[0].write('\n'.join(
