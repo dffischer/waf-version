@@ -6,8 +6,8 @@ def configure(ctx):
 def build(bld):
     node = bld.path.find_or_declare
     bld(versions={
-        "ssh": 7,
-        "bash": 3
+        "ssh": (6, 9),
+        "bash": (3, )
     }).create_task('ver',
             node('in.ver'),
             node('out')

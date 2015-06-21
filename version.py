@@ -13,7 +13,7 @@ E.g. with the setup
 
     def build(bld):
         bld(
-            versions={"ssh": 5}
+            versions={"ssh": (5, )}
         ).create_task('ver',
             source="in.ver",
             target="out"
@@ -21,6 +21,9 @@ E.g. with the setup
 
 lines in the file "in" containing "@ssh>6@" will be omitted from "out".
 Markers like "@ssh<7@" will be removed, the lines containing them left intact.
+
+The components of a version number that are usually separated by periods, like
+major, minor and patch, are comprised as a tuple for the context of this tool.
 """
 
 from waflib.Task import Task, store_task_type
@@ -65,7 +68,11 @@ class ver(Task, metaclass=compose_match):
             if match:
                 if self.operators[match.group("operator")](
                         self.generator.versions[match.group("program")],
-                        float(match.group("version"))):
+                        version(match.group("version"))):
                     yield self.marker.sub('', line)
             else:
                 yield line
+
+def version(str):
+    """Parse a version string into a tuple."""
+    return tuple(map(int, str.split('.')))
