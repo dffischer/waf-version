@@ -22,13 +22,18 @@ E.g. with the setup
 lines in the file "in" containing "@ssh>6@" will be omitted from "out".
 Markers like "@ssh<7@" will be removed, the lines containing them left intact.
 
+If any comparison operator is immediately followed by a question mark, the
+comparison discards further components when version strings differ in length,
+for example yielding 8==?8.1. Alternatively, the task class "subver" can be
+used instead to turn all comparisons to act this fuzzy.
+
 The components of a version number that are usually separated by periods, like
 major, minor and patch, are comprised as a tuple for the context of this tool.
 """
 
 from waflib.Task import Task, store_task_type
 from re import compile, escape
-from operator import lt, le, gt, ge, eq, ne
+from operator import lt, le, gt, ge, eq, ne, itemgetter
 
 class compose_match(store_task_type):
     """Metaclass composing the marker regular expression to look for exactly
@@ -43,7 +48,7 @@ class compose_match(store_task_type):
                     ')(?P<version>\d[\.\d]*)'
                     '@\s*')
 
-class ver(Task, metaclass=compose_match):
+class ver_base(Task, metaclass=compose_match):
     """Copy a file, including only lines without or with matching version
     markers."""
 
@@ -72,6 +77,26 @@ class ver(Task, metaclass=compose_match):
                     yield self.marker.sub('', line)
             else:
                 yield line
+
+def fuzzy(cmp):
+    """Wraps a function to consider sequences only up to the length of the
+    shortest argument. This makes comparison of version tuples consider
+    subversions equal."""
+    return lambda *args: cmp(*(map(
+            itemgetter(slice(min(map(len, args)))),
+            args)))
+
+class subver(ver_base):
+    """Compare all version strings fuzzy."""
+    operators = {operator: fuzzy(function)
+            for operator, function in ver_base.operators.items()}
+
+class ver(ver_base):
+    """Provide fuzzy comparison of version strings through suffixing operators
+    with a question mark."""
+    operators = dict(ver_base.operators,
+            **{operator + "?": fuzzy(function)
+                for operator, function in ver_base.operators.items()})
 
 def version(str):
     """Parse a version string into a tuple."""
