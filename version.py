@@ -78,6 +78,9 @@ class ver_base(Task, metaclass=compose_match):
             else:
                 yield line
 
+    def keyword(self):
+        return "Versioning"
+
 def fuzzy(cmp):
     """Wraps a function to consider sequences only up to the length of the
     shortest argument. This makes comparison of version tuples consider
