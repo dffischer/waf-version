@@ -34,6 +34,7 @@ major, minor and patch, are comprised as a tuple for the context of this tool.
 from waflib.Task import Task, store_task_type
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
+from contextlib import suppress
 
 class compose_match(store_task_type):
     """Metaclass composing the marker regular expression to look for exactly
@@ -65,6 +66,10 @@ class ver_base(Task, metaclass=compose_match):
         self.outputs[0].write('\n'.join(
             self.compatible(self.inputs[0].read().splitlines())))
 
+        # make sure the signature is updated
+        with suppress(AttributeError):
+            del(self.cache_sig)
+
     def compatible(self, text):
         """Checks the lines of text and yields all of them that have compatible
         version markers, all markers removed."""
@@ -80,6 +85,14 @@ class ver_base(Task, metaclass=compose_match):
 
     def keyword(self):
         return "Versioning"
+
+    def sig_vars(self):
+        super().sig_vars()
+        upd = self.m.update
+        for program, version in sorted(self.generator.versions.items()):
+            upd(program.encode())
+            upd('.'.join(map(str, version)).encode())
+        return self.m.digest()
 
 def fuzzy(cmp):
     """Wraps a function to consider sequences only up to the length of the
