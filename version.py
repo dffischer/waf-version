@@ -73,15 +73,19 @@ class ver_base(Task, metaclass=compose_match):
     def compatible(self, text):
         """Checks the lines of text and yields all of them that have compatible
         version markers, all markers removed."""
+        programs = set()
         for line in text:
             match = self.marker.search(line)
             if match:
+                program = match.group("program")
+                programs.add(program)
                 if self.operators[match.group("operator")](
-                        self.generator.versions[match.group("program")],
+                        self.generator.versions[program],
                         version(match.group("version"))):
                     yield self.marker.sub('', line)
             else:
                 yield line
+        self.generator.bld.raw_deps[self.uid()] = programs
 
     def keyword(self):
         return "Versioning"
@@ -89,9 +93,11 @@ class ver_base(Task, metaclass=compose_match):
     def sig_vars(self):
         super().sig_vars()
         upd = self.m.update
-        for program, version in sorted(self.generator.versions.items()):
+        versions = self.generator.versions
+        for program in sorted(
+                self.generator.bld.raw_deps.get(self.uid(), set())):
             upd(program.encode())
-            upd('.'.join(map(str, version)).encode())
+            upd('.'.join(map(str, versions.get(program, ()))).encode())
         return self.m.digest()
 
 def fuzzy(cmp):
