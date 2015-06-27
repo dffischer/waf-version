@@ -80,12 +80,21 @@ class ver_base(Task, metaclass=compose_match):
                 program = match.group("program")
                 programs.add(program)
                 if self.operators[match.group("operator")](
-                        self.generator.versions[program],
+                        self.get_version(program),
                         version(match.group("version"))):
                     yield self.marker.sub('', line)
             else:
                 yield line
         self.generator.bld.raw_deps[self.uid()] = programs
+
+    def get_version(self, program):
+        """Looks for a version tuple in the dictionary given to the
+        generator, or queries the environment alternatively."""
+        generator = self.generator
+        try:
+            return self.generator.versions[program]
+        except KeyError:
+            return self.generator.versions[program.upper()]
 
     def keyword(self):
         return "Versioning"
@@ -93,11 +102,13 @@ class ver_base(Task, metaclass=compose_match):
     def sig_vars(self):
         super().sig_vars()
         upd = self.m.update
-        versions = self.generator.versions
         for program in sorted(
                 self.generator.bld.raw_deps.get(self.uid(), set())):
             upd(program.encode())
-            upd('.'.join(map(str, versions.get(program, ()))).encode())
+            try:
+                upd('.'.join(map(str, self.get_version(program))).encode())
+            except KeyError:
+                upd(''.encode())
         return self.m.digest()
 
 def fuzzy(cmp):
