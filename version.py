@@ -32,6 +32,7 @@ major, minor and patch, are comprised as a tuple for the context of this tool.
 """
 
 from waflib.Task import Task, store_task_type
+from waflib.Errors import WafError
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
 from contextlib import suppress
@@ -79,10 +80,13 @@ class ver_base(Task, metaclass=compose_match):
             if match:
                 program = match.group("program")
                 programs.add(program)
-                if self.operators[match.group("operator")](
-                        self.get_version(program),
-                        version(match.group("version"))):
-                    yield self.marker.sub('', line)
+                try:
+                    if self.operators[match.group("operator")](
+                            self.get_version(program),
+                            version(match.group("version"))):
+                        yield self.marker.sub('', line)
+                except KeyError as program:
+                    raise WafError('version missing for program ' + str(program)) from program
             else:
                 yield line
         self.generator.bld.raw_deps[self.uid()] = programs
