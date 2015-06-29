@@ -2,3 +2,4 @@ This line should always appear.
 This line is only valid for ssh versions starting with 6. @ssh==?6@
 This line will be missing when bash is older than version 4.1. @bash>=4.1@
 This line shows that markers may be included anywhere @ssh>2@ on the line.
+@rsync<3@ This line cares for an outdated rsync.

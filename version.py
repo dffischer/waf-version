@@ -27,6 +27,10 @@ comparison discards further components when version strings differ in length,
 for example yielding 8==?8.1. Alternatively, the task class "subver" can be
 used instead to turn all comparisons to act this fuzzy.
 
+When no explicit version for a program was given in the versions dictionary
+argument to the task generator, it will be retrieved from an environment
+variable named like the program prepended by "_VERSION", all uppercase.
+
 The components of a version number that are usually separated by periods, like
 major, minor and patch, are comprised as a tuple for the context of this tool.
 """
@@ -85,8 +89,8 @@ class ver_base(Task, metaclass=compose_match):
                             self.get_version(program),
                             version(match.group("version"))):
                         yield self.marker.sub('', line)
-                except KeyError as program:
-                    raise WafError('version missing for program ' + str(program)) from program
+                except TypeError:
+                    raise WafError('version missing for program ' + program)
             else:
                 yield line
         self.generator.bld.raw_deps[self.uid()] = programs
@@ -96,9 +100,12 @@ class ver_base(Task, metaclass=compose_match):
         generator, or queries the environment alternatively."""
         generator = self.generator
         try:
-            return self.generator.versions[program]
-        except KeyError:
-            return self.generator.versions[program.upper()]
+            try:
+                return generator.versions[program]
+            except KeyError:
+                return generator.versions[program.upper()]
+        except (KeyError, AttributeError):
+            return generator.env[program.upper() + '_VERSION']
 
     def keyword(self):
         return "Versioning"
