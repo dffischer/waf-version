@@ -2,7 +2,7 @@
 
 def configure(ctx):
     ctx.load("version", tooldir="..")
-    ctx.env["RSYNC_VERSION"] = (3, 1, 1)
+    ctx.find_version("rsync")
 
 def build(bld):
     node = bld.path.find_or_declare

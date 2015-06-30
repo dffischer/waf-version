@@ -29,7 +29,9 @@ used instead to turn all comparisons to act this fuzzy.
 
 When no explicit version for a program was given in the versions dictionary
 argument to the task generator, it will be retrieved from an environment
-variable named like the program prepended by "_VERSION", all uppercase.
+variable named like the program prepended by "_VERSION", all uppercase. A
+configuration function find_version is provided which can be used instead of
+find_program to set this variable on the fly.
 
 The components of a version number that are usually separated by periods, like
 major, minor and patch, are comprised as a tuple for the context of this tool.
@@ -37,6 +39,7 @@ major, minor and patch, are comprised as a tuple for the context of this tool.
 
 from waflib.Task import Task, store_task_type
 from waflib.Errors import WafError
+from waflib.Configure import conf
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
 from contextlib import suppress
@@ -142,6 +145,26 @@ class ver(ver_base):
             **{operator + "?": fuzzy(function)
                 for operator, function in ver_base.operators.items()})
 
+
 def version(str):
     """Parse a version string into a tuple."""
     return tuple(map(int, str.split('.')))
+
+
+version_string = compile("\d+(\.\d+)*")
+"""Find version strings."""
+
+@conf
+def find_version(self, program, **kw):
+    """Find the version of a program.
+
+    :param var: Store the result to conf.env[var.upper() + "_VERSION"], by
+        default use the program name.
+    :type var: string
+
+    This includes a call to find_program, which all arguments will be passed
+    to."""
+    self.env[kw.get('var', program).upper() + "_VERSION"] = version(
+            version_string.search(self.cmd_and_log(
+                (self.find_program(program, **kw)[0], '--version')
+            )).group(0))
