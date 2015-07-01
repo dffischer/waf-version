@@ -155,16 +155,19 @@ version_string = compile("\d+(\.\d+)*")
 """Find version strings."""
 
 @conf
-def find_version(self, program, **kw):
+def find_version(self, program, argument='--version', **kw):
     """Find the version of a program.
 
     :param var: Store the result to conf.env[var.upper() + "_VERSION"], by
         default use the program name.
     :type var: string
+    :param argument: Pass this argument to the program to make it output its
+        version, '--version' by default.
+    :type argument: string
 
-    This includes a call to find_program, which all arguments will be passed
-    to."""
+    This includes a call to find_program, which the program, the parameter
+    'var' and all further keyword arguments will be passed to."""
     self.env[kw.get('var', program).upper() + "_VERSION"] = version(
             version_string.search(self.cmd_and_log(
-                (self.find_program(program, **kw)[0], '--version')
+                (self.find_program(program, **kw)[0], argument)
             )).group(0))
