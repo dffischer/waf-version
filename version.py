@@ -151,11 +151,9 @@ def version(str):
     return tuple(map(int, str.split('.')))
 
 
-version_string = compile("\d+(\.\d+)*")
-"""Find version strings."""
-
 @conf
-def find_version(self, program, argument='--version', **kw):
+def find_version(self, program, argument='--version',
+        string=compile("\d+(\.\d+)*"), **kw):
     """Find the version of a program.
 
     :param var: Store the result to conf.env[var.upper() + "_VERSION"], by
@@ -164,10 +162,16 @@ def find_version(self, program, argument='--version', **kw):
     :param argument: Pass this argument to the program to make it output its
         version, '--version' by default.
     :type argument: string
+    :param string: Consider the first match of this regular expression to be
+        the version string. The entire matching string has to be appropriate as
+        an arguemnt to the version function. To fix the match into a context,
+        consider look-arund expressions. By default, the first sequence of
+        numbers, possibly separated by dots, is used.
+    :type string: re.regex
 
     This includes a call to find_program, which the program, the parameter
     'var' and all further keyword arguments will be passed to."""
     self.env[kw.get('var', program).upper() + "_VERSION"] = version(
-            version_string.search(self.cmd_and_log(
+            string.search(self.cmd_and_log(
                 (self.find_program(program, **kw)[0], argument)
             )).group(0))
