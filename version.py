@@ -154,13 +154,16 @@ def version(str):
 @conf
 def find_version(self, program, argument='--version',
         string=compile("\d+(\.\d+)*"), **kw):
-    """Find the version of a program.
+    """Find the version of a program. Normally, the standard output of the
+    program is searched for a versions string. If the program exits with an
+    errorneous return code, the standard error output is examined instead.
 
     :param var: Store the result to conf.env[var.upper() + "_VERSION"], by
         default use the program name.
     :type var: string
     :param argument: Pass this argument to the program to make it output its
-        version, '--version' by default.
+        version, '--version' by default. If the program only includes a version
+        in its error output consider passing an invalid switch here.
     :type argument: string
     :param string: Consider the first match of this regular expression to be
         the version string. The entire matching string has to be appropriate as
@@ -172,6 +175,15 @@ def find_version(self, program, argument='--version',
     This includes a call to find_program, which the program, the parameter
     'var' and all further keyword arguments will be passed to."""
     self.env[kw.get('var', program).upper() + "_VERSION"] = version(
-            string.search(self.cmd_and_log(
+            string.search(handle(WafError, lambda e: e.stderr,
+                self.cmd_and_log,
                 (self.find_program(program, **kw)[0], argument)
             )).group(0))
+
+def handle(exception, handler, process, *args, **kwargs):
+    """Execute process with all further arguments, processing an exception with
+    the given handler."""
+    try:
+        return process(*args, **kwargs)
+    except exception as e:
+        return handler(e)
