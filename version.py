@@ -13,14 +13,14 @@ E.g. with the setup
 
     def build(bld):
         bld(
-            versions={"ssh": (5, )}
+            versions={"bash": (4, 4)}
         ).create_task('ver',
             source="in.ver",
             target="out"
         )
 
-lines in the file "in" containing "@ssh>6@" will be omitted from "out".
-Markers like "@ssh<7@" will be removed, the lines containing them left intact.
+lines in the file "in" containing "@bash>6@" will be omitted from "out".
+Markers like "@bash<7@" will be removed, the lines containing them left intact.
 
 If any comparison operator is immediately followed by a question mark, the
 comparison discards further components when version strings differ in length,
