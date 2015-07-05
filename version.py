@@ -9,12 +9,13 @@ markers may be placed anywhere in the line. They consist of the name of a
 program, followed by a comparison operator (one of <, <=, >, >= or ==), and a
 version number, all enclosed in @ symbols.
 
-E.g. with the setup
+E.g., assuming bash is installed with version 4.4, with the setup
+
+    def configure(cnf):
+        cnf.find_version("bash")
 
     def build(bld):
-        bld(
-            versions={"bash": (4, 4)}
-        ).create_task('ver',
+        bld().create_task('ver',
             source="in.ver",
             target="out"
         )
@@ -27,11 +28,12 @@ comparison discards further components when version strings differ in length,
 for example yielding 8==?8.1. Alternatively, the task class "subver" can be
 used instead to turn all comparisons to act this fuzzy.
 
-When no explicit version for a program was given in the versions dictionary
-argument to the task generator, it will be retrieved from an environment
-variable named like the program prepended by "_VERSION", all uppercase. A
-configuration function find_version is provided which can be used instead of
-find_program to set this variable on the fly.
+Explicit version tuples for programs can be given in a dictionary passed to the
+task generator as an argument named "versions". If no respective entry is dound
+therein, it will be retrieved from an environment variable named like the
+program prepended by "_VERSION", all uppercase. A configuration function
+find_version is provided which can be used instead of find_program to set this
+variable on the fly.
 
 The components of a version number that are usually separated by periods, like
 major, minor and patch, are comprised as a tuple for the context of this tool.
