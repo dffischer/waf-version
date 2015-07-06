@@ -3,11 +3,11 @@
 """
 Include lines depending on program version.
 
-The task class 'ver' provided herein, processes a single input file
-conditionally including lines containing version compatibility markers. These
-markers may be placed anywhere in the line. They consist of the name of a
-program, followed by a comparison operator (one of <, <=, >, >= or ==), and a
-version number, all enclosed in @ symbols.
+The rule for source files with the extension '.ver', provided herein, processes
+a input files conditionally including lines containing version compatibility
+markers. These markers may be placed anywhere in the line. They consist of the
+name of a program, followed by a comparison operator (one of <, <=, >, >= or
+==), and a version number, all enclosed in @ symbols.
 
 E.g., assuming bash is installed with version 4.4, with the setup
 
@@ -15,12 +15,9 @@ E.g., assuming bash is installed with version 4.4, with the setup
         cnf.find_version("bash")
 
     def build(bld):
-        bld().create_task('ver',
-            source="in.ver",
-            target="out"
-        )
+        bld(source="file.ver")
 
-lines in the file "in" containing "@bash>6@" will be omitted from "out".
+lines in the "file.ver" containing "@bash>6@" will be omitted from "file".
 Markers like "@bash<7@" will be removed, the lines containing them left intact.
 
 If any comparison operator is immediately followed by a question mark, the
@@ -42,6 +39,7 @@ major, minor and patch, are comprised as a tuple for the context of this tool.
 from waflib.Task import Task, store_task_type
 from waflib.Errors import WafError
 from waflib.Configure import conf
+from waflib.TaskGen import extension
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
 from contextlib import suppress
@@ -71,6 +69,9 @@ class ver_base(Task, metaclass=compose_match):
     is possible to add new operators by customizing this dictionary for a
     subclass. All functions have to accept exactly two numeric arguments and
     return a boolesch value."""
+
+    ext_in = ('.ver', )
+    ext_out = ('', )
 
     def run(self):
         self.outputs[0].write('\n'.join(
@@ -189,3 +190,7 @@ def handle(exception, handler, process, *args, **kwargs):
         return process(*args, **kwargs)
     except exception as e:
         return handler(e)
+
+@extension(".ver")
+def add_verfile(self, node):
+    self.create_task('ver', node, node.change_ext('', '.ver'))

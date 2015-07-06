@@ -5,11 +5,8 @@ def configure(ctx):
     ctx.find_version("rsync")
 
 def build(bld):
-    node = bld.path.find_or_declare
-    bld(versions={
-        "ssh": (6, 9),
-        "bash": (3, )
-    }).create_task('ver',
-            node('in.ver'),
-            node('out')
-    )
+    bld(source="file.ver",
+            versions={
+                "ssh": (6, 9),
+                "bash": (3, )
+    })
