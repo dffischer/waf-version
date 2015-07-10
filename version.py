@@ -34,12 +34,16 @@ variable on the fly.
 
 The components of a version number that are usually separated by periods, like
 major, minor and patch, are comprised as a tuple for the context of this tool.
+
+The install_path attribute may be specified at task generator creation to
+specify a location to install the processed files.
 """
 
 from waflib.Task import Task, store_task_type
 from waflib.Errors import WafError
 from waflib.Configure import conf
 from waflib.TaskGen import extension
+from waflib.Utils import O644
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
 from contextlib import suppress
@@ -193,4 +197,10 @@ def handle(exception, handler, process, *args, **kwargs):
 
 @extension(".ver")
 def add_verfile(self, node):
-    self.create_task('ver', node, node.change_ext('', '.ver'))
+    output = node.change_ext('', '.ver')
+    self.create_task('ver', node, output)
+
+    inst_to = getattr(self, 'install_path', None)
+    if inst_to:
+        self.bld.install_files(inst_to, output,
+                chmod=getattr(self, 'chmod', O644))

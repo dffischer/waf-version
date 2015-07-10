@@ -8,5 +8,6 @@ def build(bld):
     bld(source="file.ver",
             versions={
                 "ssh": (6, 9),
-                "bash": (3, )
-    })
+                "bash": (3, )},
+            install_path="/tmp"
+    )
