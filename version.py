@@ -42,7 +42,7 @@ specify a location to install the processed files.
 from waflib.Task import Task, store_task_type
 from waflib.Errors import WafError
 from waflib.Configure import conf
-from waflib.TaskGen import extension
+from waflib.TaskGen import extension, task_gen
 from waflib.Utils import O644
 from re import compile, escape
 from operator import lt, le, gt, ge, eq, ne, itemgetter
@@ -199,6 +199,9 @@ def handle(exception, handler, process, *args, **kwargs):
 def add_verfile(self, node):
     output = node.change_ext('', '.ver')
     self.create_task('ver', node, output)
+
+    if output.suffix() in task_gen.mappings.keys():
+        self.source.append(output)
 
     inst_to = getattr(self, 'install_path', None)
     if inst_to:
