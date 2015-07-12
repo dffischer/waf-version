@@ -22,8 +22,8 @@ Markers like "@bash<7@" will be removed, the lines containing them left intact.
 
 If any comparison operator is immediately followed by a question mark, the
 comparison discards further components when version strings differ in length,
-for example yielding 8==?8.1. Alternatively, the task class "subver" can be
-used instead to turn all comparisons to act this fuzzy.
+for example yielding 8==?8.1. Alternatively, set a parameter "fuzzy" in the
+task generator to instead turn all default comparisons to act this way.
 
 Explicit version tuples for programs can be given in a dictionary passed to the
 task generator as an argument named "versions". If no respective entry is dound
@@ -198,7 +198,8 @@ def handle(exception, handler, process, *args, **kwargs):
 @extension(".ver")
 def add_verfile(self, node):
     output = node.change_ext('', '.ver')
-    self.create_task('ver', node, output)
+    self.create_task('subver' if getattr(self, 'fuzzy', False) else 'ver',
+            node, output)
 
     if output.suffix() in task_gen.mappings.keys():
         self.source.append(output)
