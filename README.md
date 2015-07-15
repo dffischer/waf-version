@@ -6,3 +6,8 @@ This tool teaches [Waf](http://waf.io) to pre-process files dependent on program
 - adapt wrappers to arguments that were added, removed or modified,
 - adapt to API changes introduced with a dedicated version or
 - work around bugs only present in old versions.
+
+
+## Usage
+
+[The included example](example/wscript) shows how to use it in a wafscript.
